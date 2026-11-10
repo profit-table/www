@@ -1,1 +1,5 @@
 /.claude/
+
+# Editors / OS
+.idea/
+.DS_Store
