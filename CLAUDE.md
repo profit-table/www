@@ -5,64 +5,52 @@ noSite placeholder (see global CLAUDE.md).
 
 ## The ProfitTable repos
 
+ProfitTable follows the standard project structure in the global CLAUDE.md (sta → dist → app).
+
 ```
 ~/Sites/
 │
-├── ProfitTable-www/  ──────────────→  github.com/profit-table/www
-│     Public information site about the ProfitTable product.
-│     No GUI yet (noSite placeholder).
-│
-├── ProfitTable-sta/  ──────────────→  github.com/profit-table/sta
-│   │ Source for the Vue 3 custom HTML tags (STA).
+├── ProfitTable-sta/  ─────────→  profit-table/sta
+│   │ Source of the <tags/> (Vue 3 custom HTML tags). sta/index.html previews them as wireframes.
 │   │ Has its own CLAUDE.md — read it before touching sta.
 │   │
-│   └── dist/  ─────────────────────→  github.com/profit-table/app
-│         Its own git repo (sta's .gitignore excludes dist).
-│         `yarn build` in sta writes here; commit and push from dist/ to the app repo.
+│   └── dist/  ────────────────→  profit-table/dist   →  dist.profittable.ai
+│         Local checkout of the dist repo (gitignored in sta).
+│         The built runtime (app.js) that other sites load.
 │
-└── ProfitTable-icon/  ─────────────→  github.com/profit-table/icon
-      Favicons and app icons, published publicly on GitHub Pages.
-      www, app, sta and anything else link to it:
-
-            www ──┐
-            app ──┼──→  icon (GitHub Pages)
-            sta ──┘
+├── app  ──────────────────────→  profit-table/app    →  app.profittable.ai
+│     The real public-facing product, built with the tags.
+│     Loads <script src="https://dist.profittable.ai/app.js">. No local checkout yet.
+│
+├── ProfitTable-www/  ─────────→  profit-table/www    →  profittable.ai
+│     Public information site. Does not depend on sta, dist or app.
+│
+└── ProfitTable-icon/  ────────→  profit-table/icon   →  icon.profittable.ai
+      Favicons and app icons. Everything links to https://icon.profittable.ai/…
 ```
-
-The only links between repos:
-
-- **sta → app**: sta's build output is published as the app repo.
-- **everything → icon**: icon links (`<link rel="icon">`, `apple-touch-icon`, manifest) point at
-  `https://icon.profittable.ai/…`, not at copies in each repo.
-
-www does not depend on sta or app.
 
 ## Domains (profittable.ai)
 
-All records are proxied CNAMEs to `cdn.profittable.ai`, whose A records are GitHub Pages' IPs
-(185.199.108–111.153). Pages picks the repo by hostname, from each repo's `CNAME` file / Pages setting.
+Proxied CNAMEs to `cdn.profittable.ai`, whose A records are GitHub Pages' IPs (185.199.108–111.153).
+Pages picks the repo by hostname, from each repo's `CNAME`.
 
-| Hostname | Repo | Status |
+| Hostname | Repo | CNAME file |
 |---|---|---|
-| `icon.profittable.ai` | icon | **Live** (CNAME fixed in icon `0b6b04c`) |
-| `profittable.ai`, `www.profittable.ai` | www | Pages not confirmed yet |
-| `app.profittable.ai` | app (`sta/dist`) | Pages not confirmed yet |
-| `sta.profittable.ai` | sta | Purpose undecided — the sta repo is source and won't serve as-is |
+| `profittable.ai` | www | `profittable.ai` |
+| `www.profittable.ai` | → redirect to `profittable.ai` (Cloudflare) | — |
+| `dist.profittable.ai` | dist | `dist.profittable.ai` |
+| `app.profittable.ai` | app | — |
+| `icon.profittable.ai` | icon | `icon.profittable.ai` (live) |
+| `api.profittable.ai` | api (server side) | Not set up yet |
+| `sta.profittable.ai` | — | Undecided |
 
-## Known loose ends
+## Open
 
-- **app CNAME vs builds**: `vite build` empties `sta/dist`, so a `CNAME` file there is deleted on every build. Put
-  `CNAME` (`app.profittable.ai`) in `sta/public/` so each build copies it into `dist/`. Vite should keep
-  `dist/.git`, but other files in `dist/` are deleted — check before the first real build/publish.
-- **Domain verification**: verify `profittable.ai` in the profit-table org (Pages → verified domains) so no other
-  account can claim a subdomain pointed at GitHub.
-- **Proxy + HTTPS**: if a Pages domain check fails or no certificate is issued, set that record to DNS-only until
-  GitHub issues the cert, then re-enable the proxy and tick **Enforce HTTPS**.
-- In the icon repo, `icon-512.png` and `icon-maskable.png` are the same byte size — probably the same file. A real
-  maskable icon needs safe-zone padding.
+- sta's `yarn deploy` (tests → build → publish dist) isn't built yet; see the global CLAUDE.md "Build & publish".
+  Until it is, `vite build` empties `sta/dist`, removing the dist repo's `CNAME` and `index.html` from the working copy.
 
 ## Working here
 
-- Worktrees live in `.claude/worktrees/` (gitignored). Branch names follow `feat/… fix/… chore/… docs/…`.
-- sta and icon are usually attached to the session as plain folders on their own `master`: branch there before editing.
-- Shell commands may run from a different repo than you expect when several are attached — check `pwd` before git commands.
+- Worktrees live in `.claude/worktrees/` (gitignored). Follow the global git Flow.
+- sta, dist and icon are usually attached as plain folders on their own `master`: branch there before editing.
+- With several repos attached, check `pwd` before every git command.
